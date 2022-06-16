@@ -5,9 +5,9 @@ build-backend = "flit_core.buildapi"
 
 [project]
 # See https://www.python.org/dev/peps/pep-0621/
-name = "aiida-diff"
+name = "aiida-finale"
 dynamic = ["version"]  # read from aiida_diff/__init__.py
-description = "AiiDA demo plugin that wraps the `diff` executable for computing the difference between two files."
+description = "AiiDA client for FINALE."
 authors = [{name = "The AiiDA Team"}]
 readme = "README.md"
 license = {file = "LICENSE"}
@@ -27,7 +27,7 @@ dependencies = [
 ]
 
 [project.urls]
-Source = "https://github.com/aiidateam/aiida-diff"
+Source = "https://github.com/ramirezfranciscof/aiida-finale"
 
 [project.optional-dependencies]
 testing = [
@@ -49,20 +49,14 @@ docs = [
     "markupsafe<2.1"
 ]
 
-[project.entry-points."aiida.data"]
-"diff" = "aiida_diff.data:DiffParameters"
-
 [project.entry-points."aiida.calculations"]
-"diff" = "aiida_diff.calculations:DiffCalculation"
+"finale.cf.conductivity" = "aiida_finale.calculations:conductivity_calcfunction"
 
-[project.entry-points."aiida.parsers"]
-"diff" = "aiida_diff.parsers:DiffParser"
-
-[project.entry-points."aiida.cmdline.data"]
-"diff" = "aiida_diff.cli:data_cli"
+[project.scripts]
+aiida-finale = 'aiida_finale.cli:cmd_root'
 
 [tool.flit.module]
-name = "aiida_diff"
+name = "aiida_finale"
 
 [tool.pylint.format]
 max-line-length = 125
@@ -97,32 +91,3 @@ line_length = 120
 force_sort_within_sections = true
 sections = ['FUTURE', 'STDLIB', 'THIRDPARTY', 'AIIDA', 'FIRSTPARTY', 'LOCALFOLDER']
 known_aiida = ['aiida']
-
-[tool.tox]
-legacy_tox_ini = """
-[tox]
-envlist = py38
-
-[testenv]
-usedevelop=True
-
-[testenv:py{38,39,310}]
-description = Run the test suite against a python version
-extras = testing
-setenv =
-    AIIDA_WARN_v3 = 1
-commands = pytest {posargs}
-
-[testenv:pre-commit]
-description = Run the pre-commit checks
-extras =
-    pre-commit
-    testing
-commands = pre-commit run {posargs}
-
-[testenv:docs]
-description = Build the documentation
-extras = docs
-commands = sphinx-build -nW --keep-going -b html {posargs} docs/source docs/build/html
-commands_post = echo "open file://{toxinidir}/docs/build/html/index.html"
-"""
