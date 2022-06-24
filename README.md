@@ -1,11 +1,6 @@
-[![Build Status][ci-badge]][ci-link]
-[![Coverage Status][cov-badge]][cov-link]
-[![Docs status][docs-badge]][docs-link]
-[![PyPI version][pypi-badge]][pypi-link]
-
 # aiida-finale
 
-AiiDA client to interact with a finale server.
+AiiDA client to interact with a [finale server](https://github.com/BIG-MAP/finale).
 
 Currently this is a test model.
 
@@ -46,17 +41,3 @@ Start running the server (it blocks the terminal, you can exit by ctrl+C)
   aiida-finale client start -c config_file.yaml
 ```
 
-
-## License
-
-MIT
-
-
-[ci-badge]: https://github.com/aiidateam/aiida-diff/workflows/ci/badge.svg?branch=master
-[ci-link]: https://github.com/aiidateam/aiida-diff/actions
-[cov-badge]: https://coveralls.io/repos/github/aiidateam/aiida-diff/badge.svg?branch=master
-[cov-link]: https://coveralls.io/github/aiidateam/aiida-diff?branch=master
-[docs-badge]: https://readthedocs.org/projects/aiida-diff/badge
-[docs-link]: http://aiida-diff.readthedocs.io/
-[pypi-badge]: https://badge.fury.io/py/aiida-diff.svg
-[pypi-link]: https://badge.fury.io/py/aiida-diff
