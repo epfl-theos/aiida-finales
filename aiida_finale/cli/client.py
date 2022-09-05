@@ -128,6 +128,10 @@ def filter_requests(input_requests, processed_requests):
             if critical_compound not in present_compounds:
                 is_request_valid = False
 
+        temperature = input_data['temperature']['value']
+        if not ( 243 <= temperature <= 333 ):
+            is_request_valid = False
+
         if request_id in processed_requests:
             is_request_valid = False
 
