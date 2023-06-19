@@ -47,7 +47,9 @@ jobs:
                 python-version: ${{ matrix.python-version }}
 
         -   name: Install Python dependencies
-            run: pip install -e .[devs]
+            run: |
+                pip install -e .[devs]
+                pip freeze
 
         -   name: Run pytest
             run: pytest -sv tests

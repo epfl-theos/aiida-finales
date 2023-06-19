@@ -1,11 +1,10 @@
-# -*- coding: utf-8 -*-
 """Class to manage the connection with the server."""
 import time
 
 import requests
 
 
-class ConnectionManager():
+class ConnectionManager:
     """Class to manage the connection with the server."""
 
     def __init__(self, username, password, ipurl, port):
@@ -24,7 +23,7 @@ class ConnectionManager():
             data={
                 'username': self._username,
                 'password': self._password,
-                'grant_type': 'password'
+                'grant_type': 'password',
             },
             headers={'content-type': 'application/x-www-form-urlencoded'},
         )
@@ -47,10 +46,12 @@ class ConnectionManager():
         """Post a measurement result to the server."""
         time.sleep(0.1)
         request_url = self._baseurl + '/api/broker/post/measurement'
-        request_response = requests.post(request_url,
-                                         data=json_data,
-                                         params={'request_id': request_id},
-                                         headers=self._auth_header)
+        request_response = requests.post(
+            request_url,
+            data=json_data,
+            params={'request_id': request_id},
+            headers=self._auth_header,
+        )
         return request_response.json()
 
     def post_request(self, json_data):

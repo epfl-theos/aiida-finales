@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Topmost command line, kept separate to prevent import cycles."""
 
 import click

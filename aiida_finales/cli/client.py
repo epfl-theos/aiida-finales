@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Commands to handle the finale client."""
 # pylint: disable=too-many-locals
 import getpass
@@ -9,9 +8,9 @@ import yaml  # consider strictyaml for automatic schema validation
 from aiida import load_profile, orm
 from aiida.engine import submit
 
-from aiida_finale.calculations import conductivity_calcfunction
-from aiida_finale.client import schemas
-from aiida_finale.client.connection_manager import ConnectionManager
+from aiida_finales.calculations import conductivity_calcfunction
+from aiida_finales.client import schemas
+from aiida_finales.client.connection_manager import ConnectionManager
 
 from .root import cmd_root
 

@@ -4,9 +4,15 @@ repos:
     hooks:
     -   id: double-quote-string-fixer
     -   id: end-of-file-fixer
-    -   id: fix-encoding-pragma
     -   id: mixed-line-ending
     -   id: trailing-whitespace
+    -   id: check-json
+
+-   repo: https://github.com/asottile/pyupgrade
+    rev: 'v2.31.0'
+    hooks:
+    -   id: pyupgrade
+        args: ["--py37-plus"]
 
 -   repo: https://github.com/ikamensh/flynt/
     rev: '0.76'
@@ -22,6 +28,17 @@ repos:
                 aiida_finale/client/schemas.py|
             )$
 
+-   repo: https://github.com/PyCQA/pydocstyle
+    rev: '6.1.1'
+    hooks:
+    -   id: pydocstyle
+        additional_dependencies: ['toml']
+        exclude: &exclude_files >
+            (?x)^(
+                docs/.*|
+                aiida_finale/client/schemas.py|
+            )$
+
 -   repo: https://github.com/pre-commit/mirrors-yapf
     rev: 'v0.32.0'
     hooks:
@@ -30,24 +47,27 @@ repos:
         types: [python]
         args: ['-i']
         additional_dependencies: ['toml']
-        exclude: &exclude_files >
-            (?x)^(
-                docs/.*|
-                aiida_finale/client/schemas.py|
-            )$
-
--   repo: https://github.com/PyCQA/pydocstyle
-    rev: '6.1.1'
-    hooks:
-    -   id: pydocstyle
-        additional_dependencies: ['toml']
         exclude: *exclude_files
 
--   repo: local
+-   repo: https://github.com/PyCQA/flake8
+    rev: '6.0.0'
     hooks:
-    -   id: pylint
-        name: pylint
-        entry: pylint
-        types: [python]
-        language: system
+    -   id: flake8
+        # E501 - line length limit
+        # W504 - line break after binary operator
+        # (incompatible with W503, ignored by default but overwriten by --ignore)
+        # E741 - ambiguous variable name, used sparsely when appropriate
+        args: ["--ignore=E501,W504,E741"]
         exclude: *exclude_files
+
+-   repo: https://github.com/pre-commit/mirrors-mypy
+    rev: 'v1.2.0'
+    hooks:
+    -   id: mypy
+        additional_dependencies: ['types-PyYAML', 'types-requests']
+        exclude: *exclude_files
+
+-   repo: https://github.com/executablebooks/mdformat
+    rev: '0.7.16'
+    hooks:
+    -   id: mdformat

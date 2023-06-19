@@ -5,7 +5,7 @@ build-backend = "flit_core.buildapi"
 
 [project]
 # See https://www.python.org/dev/peps/pep-0621/
-name = "aiida-finale"
+name = "aiida-finales"
 dynamic = ["version"]  # read from aiida_diff/__init__.py
 description = "AiiDA client for FINALE."
 authors = [{name = "The AiiDA Team"}]
@@ -24,6 +24,7 @@ requires-python = ">=3.9"
 dependencies = [
     "aiida-core>=2.0,<3",
     "pydantic",
+    "requests",
     "scipy"
 ]
 
@@ -38,7 +39,6 @@ devs = [
     "pytest~=6.0",
     "pytest-cov",
     "pre-commit~=2.2",
-    "pylint>=2.5.0,<2.9"
 ]
 docs = [
     "sphinx",
@@ -49,13 +49,13 @@ docs = [
 ]
 
 [project.entry-points."aiida.calculations"]
-"finale.cf.conductivity" = "aiida_finale.calculations:conductivity_calcfunction"
+"finale.cf.conductivity" = "aiida_finales.calculations:conductivity_calcfunction"
 
 [project.scripts]
-aiida-finale = 'aiida_finale.cli:cmd_root'
+aiida-finales = 'aiida_finales.cli:cmd_root'
 
 [tool.flit.module]
-name = "aiida_finale"
+name = "aiida_finales"
 
 [tool.pylint.format]
 max-line-length = 125

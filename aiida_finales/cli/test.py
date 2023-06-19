@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Commands for testing purposes."""
 # pylint: disable=too-many-locals,
 import getpass
@@ -6,8 +5,8 @@ import getpass
 import click
 import yaml  # consider strictyaml for automatic schema validation
 
-from aiida_finale.client import schemas
-from aiida_finale.client.connection_manager import ConnectionManager
+from aiida_finales.client import schemas
+from aiida_finales.client.connection_manager import ConnectionManager
 
 from .root import cmd_root
 
@@ -18,10 +17,12 @@ def cmd_test():
 
 
 @cmd_test.command('populate')
-@click.option('-c',
-              '--client-config-file',
-              required=True,
-              type=click.Path(exists=True, dir_okay=False))
+@click.option(
+    '-c',
+    '--client-config-file',
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
 def cmd_test_populate(client_config_file):
     """Populate the server with test requests."""
     with open(client_config_file) as fileobj:
@@ -95,13 +96,13 @@ def cmd_test_populate(client_config_file):
             ratio_method='molar',
         )
 
-        meas = schemas.Measurement(formulation=form,
-                                   temperature=schemas.Temperature(value=303,
-                                                                   unit='K'),
-                                   pending=True,
-                                   fom_data=[],
-                                   kind=schemas.Origin(origin='simulation',
-                                                       what='conductivity'))
+        meas = schemas.Measurement(
+            formulation=form,
+            temperature=schemas.Temperature(value=303, unit='K'),
+            pending=True,
+            fom_data=[],
+            kind=schemas.Origin(origin='simulation', what='conductivity'),
+        )
 
         ans_ = connection_manager.post_request(json_data=meas.json())
         ids.append(ans_)

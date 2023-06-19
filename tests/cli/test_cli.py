@@ -1,8 +1,7 @@
-# -*- coding: utf-8 -*-
 """Tests for command line interface."""
 from click.testing import CliRunner
 
-from aiida_finale.cli import cmd_root
+from aiida_finales.cli import cmd_root
 
 
 def test_cli():

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Calculation plugins provided with aiida-finale."""
 from scipy.interpolate import interp1d
 
@@ -81,5 +80,5 @@ def calculate_coefs(temperature):
     coefs = [
         float(interpolator(temperature)) for interpolator in interpolators
     ]
-    #coefs = [1.5, 0.4, 15.9, -0.1, -4.9, -21.2, -0.4, 3.3, 0.9, 7.3]
+    # coefs = [1.5, 0.4, 15.9, -0.1, -4.9, -21.2, -0.4, 3.3, 0.9, 7.3]
     return coefs
