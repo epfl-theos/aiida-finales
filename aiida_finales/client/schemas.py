@@ -1,10 +1,13 @@
-# -*- coding: utf-8 -*-
 """This is a copy of the pydantic schemas used in finale."""
-from typing import List, Optional
-from pydantic import BaseModel, validator, Field
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, Field, validator
+
 
 class User(BaseModel):
+    """Docstring."""
+
     username: str
     email: Optional[str] = None
     full_name: Optional[str] = None
@@ -12,34 +15,48 @@ class User(BaseModel):
 
 
 class Token(BaseModel):
+    """Docstring."""
+
     access_token: str
     token_type: str
 
 
 class TokenData(BaseModel):
+    """Docstring."""
+
     username: Optional[str] = None
 
 
 class UserInDB(User):
+    """Docstring."""
+
     hashed_password: str
 
 
 class Message(BaseModel):
+    """Docstring."""
+
     message: str
     id: int
 
 
 class OriginEnum(str, Enum):
+    """Docstring."""
+
     experiment = 'experiment'
     simulation = 'simulation'
     test = 'test'
 
 
 class ok(BaseModel):
+    """Docstring."""
+
     typeob: str
 
 
 class FomEnum(str, Enum):
+    """Docstring."""
+
     density = 'density'
     viscosity = 'viscosity'
     conductivity = 'conductivity'
@@ -49,28 +66,35 @@ class FomEnum(str, Enum):
 
 
 class Origin(BaseModel):
+    """Docstring."""
+
     origin: OriginEnum
     what: Optional[FomEnum]
 
 
 class Ratio(str, Enum):
+    """Docstring."""
+
     molar = 'molar'
     molal = 'molal'
     other = 'other'
 
 
 class FOM(BaseModel):
+    """Docstring."""
+
     origin: OriginEnum
 
 
 class Chemical(BaseModel):
-    """This defines a chemical
+    """This defines a chemical.
 
     Every chemical needs a SMILES and a name like DMC => COC(=O)OC
     A reference is an optional thing like "Vile 211003-Vial2-DMC"
     Example:
     dmc = schemas_pydantic.Chemical(smiles='COC(=O)OC', name='DMC', reference='DMC_Elyte_2020')
     """
+
     smiles: str  # = Field(...)
     name: str  # = Field(...)
     reference: str = ''
@@ -79,49 +103,61 @@ class Chemical(BaseModel):
 
 
 class Temperature(BaseModel):
-    """Temperature in Kelvin
+    """Temperature in Kelvin.
+
     Example:
         Temperature(value=380,unit='K')
     """
+
     value: float  # = Field(...)
     unit: str  # = Field(...)
 
     @validator('value')
     def t_value_validator(cls, v):
+        """Docstring."""
         if not v > 0:
             raise ValueError('Temperature must be >0K')
         return v
 
     @validator('unit')
     def t_unit_validator(cls, v):
+        """Docstring."""
         if v != 'K':
             raise ValueError('Temperature unit must be K')
         return v.title()
 
 
 class Amount(BaseModel):
-    """We store amount in units of mole TODO: Maybe recalc to mol?
+    """We store amount in units of mole.
+
+    TODO: Maybe recalc to mol?
 
     Amount is stored as a tuple like object i.e. how much and of what unit
     Currently we only do mol
     Example: Amount(value=0.001,unit='mol')
     """
+
     value: float  # = Field(...)
     unit: str  # = Field(...)
 
     @validator('unit')
     def amount_unit_validator(cls, v):
-        if not v in ['mol', 'Mol','at.-%','mol.-%']:
+        """Docstring."""
+        if v not in ['mol', 'Mol', 'at.-%', 'mol.-%']:
             raise ValueError('Unit must be mol or other')
         return v.title()
 
+
 class ChemRange(BaseModel):
-    """We store amount in units of mole TODO: Maybe recalc to mol?
+    """We store amount in units of mole.
+
+    TODO: Maybe recalc to mol?
 
     Amount is stored as a tuple like object i.e. how much and of what unit
     Currently we only do mol
     Example: Amount(value=0.001,unit='mol')
     """
+
     min_value: float  # = Field(...)
     max_value: float  # = Field(...)
     chemical: Chemical
@@ -129,15 +165,15 @@ class ChemRange(BaseModel):
 
     @validator('unit')
     def amount_unit_validator(cls, v):
-        if not v in ['mol', 'Mol','at.-%','mol.-%']:
+        """Docstring."""
+        if v not in ['mol', 'Mol', 'at.-%', 'mol.-%']:
             raise ValueError('Unit must be mol or other')
         return v.title()
 
 
-
-#legacy
+# legacy
 class Compound(BaseModel):
-    """Legacy Schema mostly used by experimentalists: Formulations are lists of Compound which are lists of chemicals
+    """Legacy Schema mostly used by experimentalists: Formulations are lists of Compound which are lists of chemicals.
 
     A Compound can be made up of one or more chemicals of amounts
     This is needed as some electrolyte chemicals are not liquid in their pure form at RT
@@ -147,17 +183,20 @@ class Compound(BaseModel):
     amounts=[schemas_pydantic.Amount(value=1.0, unit='mol')],
     name='DMC')
     """
-    chemicals: List[Chemical] = Field(...)  # breaking change as from now on users need to specify a compound with only one chemical
+
+    chemicals: List[Chemical] = Field(
+        ...
+    )  # breaking change as from now on users need to specify a compound with only one chemical
     amounts: List[Amount] = Field(...)
     name: str  # = Field(...)
     # TODO: Validate that len matches
 
 
 class Agent(BaseModel):
-    """This stores the range accesibile by a machine
-    """
-    online: bool #is it online
-    kind: OriginEnum #theory or experiment
+    """This stores the range accesibile by a machine."""
+
+    online: bool  # is it online
+    kind: OriginEnum  # theory or experiment
     chemicals: List[Chemical]
     ranges: List[ChemRange]
     name: str
@@ -165,8 +204,8 @@ class Agent(BaseModel):
 
 
 class Formulation(BaseModel):
-    """A Formulation is a ratio mix of different chemicals
-    """
+    """A Formulation is a ratio mix of different chemicals."""
+
     # A formulation can consist
     chemicals: List[Chemical] = Field(...)
     amounts: List[Amount] = Field(...)
@@ -176,7 +215,7 @@ class Formulation(BaseModel):
 
 
 class FomData(BaseModel):
-    """This is a wrapper for figure of merit (FOM) i.e. scalar data
+    """This is a wrapper for figure of merit (FOM) i.e. scalar data.
 
     Example:
     data = schemas_pydantic.FomData(values=[1.23],unit='g/cm**2',dim=1,
@@ -187,7 +226,9 @@ class FomData(BaseModel):
                                     name='vectorial',origin=orig,internalReference='aTest',
                                     fail=False, message='My Message', rating=1)
     """
-    values: List[float] #breaking change as now you'd have to give it [[1.23]]
+
+    values: List[
+        float]  # breaking change as now you'd have to give it [[1.23]]
     unit: str = Field(...)
     dim: int = Field(...)
     name: FomEnum = Field(...)
@@ -199,22 +240,17 @@ class FomData(BaseModel):
 
 
 class Measurement(BaseModel):
-    """A Measurement is done on a Formulation and contains data
+    """A Measurement is done on a Formulation and contains data.
 
     Example:
     meas = schemas_pydantic.Measurement(formulation=form,temperature=temp,pending=False,fom_data=[data],kind=orig)
-
-
     """
+
     # ID: UUID = Field(default_factory=uuid4)
     formulation: Formulation  # = Field(...)
     temperature: Temperature  # = Field(...)
     pending: bool  # = True
-    #processing: Optional[bool] TODO: in later update should also keep track on tah and need to update this
+    # processing: Optional[bool] TODO: in later update should also keep track on tah and need to update this
     fom_data: List[Optional[FomData]]  # = []
     kind: Origin
     # TODO: if pending True raw and fom may not be set!
-
-
-class Message(BaseModel):
-    message: dict = None

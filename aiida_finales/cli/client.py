@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Commands to handle the finale client."""
 # pylint: disable=too-many-locals
 import getpass
@@ -9,9 +8,9 @@ import yaml  # consider strictyaml for automatic schema validation
 from aiida import load_profile, orm
 from aiida.engine import submit
 
-from aiida_finale.calculations import conductivity_calcfunction
-from aiida_finale.client import schemas
-from aiida_finale.client.connection_manager import ConnectionManager
+from aiida_finales.calculations import conductivity_calcfunction
+from aiida_finales.client import schemas
+from aiida_finales.client.connection_manager import ConnectionManager
 
 from .root import cmd_root
 
@@ -22,10 +21,12 @@ def cmd_client():
 
 
 @cmd_client.command('start')
-@click.option('-c',
-              '--client-config-file',
-              required=True,
-              type=click.Path(exists=True, dir_okay=False))
+@click.option(
+    '-c',
+    '--client-config-file',
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
 def cmd_client_start(client_config_file):
     """Start up the client (blocks the terminal)."""
     with open(client_config_file) as fileobj:
@@ -128,8 +129,8 @@ def filter_requests(input_requests, processed_requests):
             if critical_compound not in present_compounds:
                 is_request_valid = False
 
-        temperature = input_data['temperature']['value']
-        if not ( 243 <= temperature <= 333 ):
+        temperature = request_data['temperature']['value']
+        if not 243 <= temperature <= 333:
             is_request_valid = False
 
         if request_id in processed_requests:

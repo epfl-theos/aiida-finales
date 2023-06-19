@@ -40,4 +40,3 @@ Start running the server (it blocks the terminal, you can exit by ctrl+C)
 ```shell
   aiida-finale client start -c config_file.yaml
 ```
-
