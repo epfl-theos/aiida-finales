@@ -22,10 +22,12 @@ def cmd_client():
 
 
 @cmd_client.command('start')
-@click.option('-c',
-              '--client-config-file',
-              required=True,
-              type=click.Path(exists=True, dir_okay=False))
+@click.option(
+    '-c',
+    '--client-config-file',
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
 def cmd_client_start(client_config_file):
     """Start up the client (blocks the terminal)."""
     with open(client_config_file) as fileobj:
@@ -128,8 +130,8 @@ def filter_requests(input_requests, processed_requests):
             if critical_compound not in present_compounds:
                 is_request_valid = False
 
-        temperature = input_data['temperature']['value']
-        if not ( 243 <= temperature <= 333 ):
+        temperature = request_data['temperature']['value']
+        if not 243 <= temperature <= 333:
             is_request_valid = False
 
         if request_id in processed_requests:
