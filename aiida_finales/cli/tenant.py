@@ -8,7 +8,7 @@ import yaml  # consider strictyaml for automatic schema validation
 from aiida import load_profile
 
 from aiida_finales.engine.client import FinalesClient
-from aiida_finales.engine.tenant import tenant_start
+from aiida_finales.engine.tenant import AiidaTenant
 
 from .root import cmd_root
 
@@ -39,14 +39,15 @@ def cmd_tenant_start(client_config_file):
     load_profile(client_profile)
 
     settings = {
-        'username': client_config['username'],
         'ipurl': client_config['ip_url'],
         'port': client_config['port'],
     }
-    username = settings['username']
-
-    settings['password'] = getpass.getpass(
-        prompt=f'Password for username `{username}` (hidden): ')
     connection_manager = FinalesClient(**settings)
 
-    tenant_start(connection_manager)
+    username = client_config['username']
+    password = getpass.getpass(
+        prompt=f'Password for username `{username}` (hidden): ', )
+    connection_manager.authenticate(username, password)
+
+    aiida_tenant = AiidaTenant(connection_manager)
+    aiida_tenant.start()

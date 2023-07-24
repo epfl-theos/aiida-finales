@@ -1,7 +1,7 @@
 """Module containing the tenant object."""
 
-from .main import tenant_start
+from .main import AiidaTenant
 
 __all__ = [
-    'tenant_start',
+    'AiidaTenant',
 ]

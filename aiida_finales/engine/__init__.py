@@ -1,9 +1,9 @@
 """Internal engine for the aiida-finales tenant."""
 
 from .client import FinalesClient
-from .tenant import tenant_start
+from .tenant import AiidaTenant
 
 __all__ = [
     'FinalesClient',
-    'tenant_start',
+    'AiidaTenant',
 ]
