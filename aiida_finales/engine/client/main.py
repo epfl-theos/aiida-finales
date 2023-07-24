@@ -73,7 +73,7 @@ class FinalesClient:
         time.sleep(self.execution_delay)
         return self._connection.authenticate(username, password)
 
-    def get_pending_requests(self, quantity, method):
+    def get_pending_requests(self, quantity=None, method=None):
         """Return the pending requests."""
         time.sleep(self.execution_delay)
         endpoint = '/pending_requests/'

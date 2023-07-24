@@ -20,75 +20,114 @@ class AiidaTenant:
         """Initialize the tenant."""
         self._client = finales_client
 
-    def start(finales_client):
+    def start(self, finales_client):
         """Start up the client (blocks the terminal)."""
-        processed_requests = set()
-        ongoing_requests = dict()
-
         while True:
-            # LOAD ALL CURRENT WORKFLOWS AND THEIR REQUEST IDS
-            #  > Check if anything is finished and post results
 
-            # GET THE REQUESTS FROM THE SERVER AND CHECK
-            #  > Which ones can be done
-            #  > Which ones are not already in process
+            print(' > Waiting to start the next loop...')
+            time.sleep(3)
 
-            print(' > Next loop starts in 5 seconds...')
-            time.sleep(5)
+            print(' > Querying AiiDA processes...')
+            requests_ongoing = self.query_requests_ongoing()
+            requests_finished = self.query_requests_finished()
 
-            # IDEA = use extras instead of having to keep track in memory
-            # list_of_processes = aiida_process_list()
+            print(' > Looking for requests in the server...')
+            pending_requests = finales_client.get_pending_requests()
 
-            print(' > Looking for conductivity simulations to do...')
-            pending_requests = finales_client.get_pending_requests(
-                params={'fom_name': 'conductivity'})
-            accepted_requests = filter_requests(pending_requests,
-                                                processed_requests)
+            print(' > Updating finished requests...')
+            outstanding_requests = {}
+            for request_id, request_data in pending_requests.items():
 
-            print(' > Measurement requests found:')
-            for reqid in pending_requests.keys():
-                is_valid = reqid in accepted_requests
-                print(f' >>> {reqid} (accepted? = {is_valid})')
-            print(' >')
+                if request_id in requests_finished:
+                    self.submit_results(request_id,
+                                        requests_finished[request_id])
+                    continue
 
-            for request_id, request_data in accepted_requests.items():
-                aiida_uuid = submit_aiida_process(request_data, request_id)
-                print(
-                    f' > Submited aiida calc for {request_id} (UUID={aiida_uuid})'
-                )
-                processed_requests.add(request_id)
-                ongoing_requests[aiida_uuid] = set_request_response_data(
-                    request_id, request_data)
+                if request_id not in requests_ongoing:
+                    if self.request_is_valid(request_data):
+                        outstanding_requests[request_id] = request_data
 
-            list_to_remove = []
-            for aiida_uuid, extra_data in ongoing_requests.items():
-                reqid = extra_data['request_id']
-                print(
-                    f' > Checking on aiida process {aiida_uuid} for request {reqid}'
-                )
-                result = check_aiida_result(aiida_uuid)
+            print(' > Launching new requests...')
+            for request_id, request_data in outstanding_requests.items():
+                self.launch_process(request_id, request_data)
 
-                if result is not None:
-                    fom = schemas.FomData(values=result,
-                                          dim=1,
-                                          **extra_data['fomdata_init'])
-                    post_data = schemas.Measurement(
-                        fom_data=[fom], **extra_data['measurement_init'])
-                    post_answer = finales_client.post_measurment(
-                        reqid, post_data.json())
+    def query_requests_ongoing(self):
+        """Get all processes that are still ongoing."""
+        time.sleep(1)
+        return {}
 
-                    print(
-                        f' > Finished {aiida_uuid} for {reqid}:\n >>> {post_answer}'
-                    )
-                    list_to_remove.append(aiida_uuid)
+    def query_requests_finished(self):
+        """Get all processes that are finished."""
+        time.sleep(1)
+        return {}
 
-            print(list_to_remove)
-            for aiida_uuid in list_to_remove:
-                ongoing_requests.pop(aiida_uuid)
+    def request_is_valid(self, request_data):
+        """Check if the tenant can deal with the request."""
+        print(f'Received {request_data}')
+        time.sleep(1)
+        return True
 
-            print(
-                '-----------------------------------------------------------------------------'
-            )
+    def submit_results(self, request_id, workflow):
+        """Submit the results to the server."""
+        print(f'Received {request_id} and {workflow}')
+        time.sleep(1)
+
+    def launch_process(self, request_id, request_data):
+        """Launch a process to address the request."""
+        print(f'Received {request_id} and {request_data}')
+        time.sleep(1)
+
+
+#            print(' > Looking for conductivity simulations to do...')
+#            pending_requests = finales_client.get_pending_requests(
+#                params={'fom_name': 'conductivity'})
+#            accepted_requests = filter_requests(pending_requests,
+#                                                processed_requests)
+#
+#            print(' > Measurement requests found:')
+#            for reqid in pending_requests.keys():
+#                is_valid = reqid in accepted_requests
+#                print(f' >>> {reqid} (accepted? = {is_valid})')
+#            print(' >')
+#
+#            for request_id, request_data in accepted_requests.items():
+#                aiida_uuid = submit_aiida_process(request_data, request_id)
+#                print(
+#                    f' > Submited aiida calc for {request_id} (UUID={aiida_uuid})'
+#                )
+#                processed_requests.add(request_id)
+#                ongoing_requests[aiida_uuid] = set_request_response_data(
+#                    request_id, request_data)
+#
+#            list_to_remove = []
+#            for aiida_uuid, extra_data in ongoing_requests.items():
+#                reqid = extra_data['request_id']
+#                print(
+#                    f' > Checking on aiida process {aiida_uuid} for request {reqid}'
+#                )
+#                result = check_aiida_result(aiida_uuid)
+#
+#                if result is not None:
+#                    fom = schemas.FomData(values=result,
+#                                          dim=1,
+#                                          **extra_data['fomdata_init'])
+#                    post_data = schemas.Measurement(
+#                        fom_data=[fom], **extra_data['measurement_init'])
+#                    post_answer = finales_client.post_measurment(
+#                        reqid, post_data.json())
+#
+#                    print(
+#                        f' > Finished {aiida_uuid} for {reqid}:\n >>> {post_answer}'
+#                    )
+#                    list_to_remove.append(aiida_uuid)
+#
+#            print(list_to_remove)
+#            for aiida_uuid in list_to_remove:
+#                ongoing_requests.pop(aiida_uuid)
+#
+#            print(
+#                '-----------------------------------------------------------------------------'
+#            )
 
 
 ################################################################################
