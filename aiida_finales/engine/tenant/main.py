@@ -6,7 +6,7 @@ from aiida_finales.calculations import conductivity_estimation
 from aiida_finales.client import schemas
 
 
-def client_start(connection_manager):
+def tenant_start(connection_manager):
     """Start up the client (blocks the terminal)."""
     processed_requests = set()
     ongoing_requests = dict()

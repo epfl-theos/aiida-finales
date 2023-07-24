@@ -7,15 +7,15 @@ import yaml  # consider strictyaml for automatic schema validation
 
 from aiida import load_profile
 
-from aiida_finales.client.connection_manager import ConnectionManager
-from aiida_finales.client.main import client_start
+from aiida_finales.engine.client import FinalesClient
+from aiida_finales.engine.tenant import tenant_start
 
 from .root import cmd_root
 
 
-@cmd_root.group('client')
+@cmd_root.group('tenant')
 def cmd_client():
-    """Handle the client."""
+    """Handle the tenant."""
 
 
 @cmd_client.command('start')
@@ -25,7 +25,7 @@ def cmd_client():
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-def cmd_client_start(client_config_file):
+def cmd_tenant_start(client_config_file):
     """Start up the client (blocks the terminal)."""
     with open(client_config_file) as fileobj:
         try:
@@ -47,6 +47,6 @@ def cmd_client_start(client_config_file):
 
     settings['password'] = getpass.getpass(
         prompt=f'Password for username `{username}` (hidden): ')
-    connection_manager = ConnectionManager(**settings)
+    connection_manager = FinalesClient(**settings)
 
-    client_start(connection_manager)
+    tenant_start(connection_manager)

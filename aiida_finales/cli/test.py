@@ -6,7 +6,7 @@ import click
 import yaml  # consider strictyaml for automatic schema validation
 
 from aiida_finales.client import schemas
-from aiida_finales.client.connection_manager import ConnectionManager
+from aiida_finales.client.connection_manager import FinalesClient
 
 from .root import cmd_root
 
@@ -42,7 +42,7 @@ def cmd_test_populate(client_config_file):
 
     settings['password'] = getpass.getpass(
         prompt=f'Password for username `{username}` (hidden): ')
-    connection_manager = ConnectionManager(**settings)
+    connection_manager = FinalesClient(**settings)
 
     print(' > Logging in (takes 5 seconds) ...')
     connection_manager.authenticate()

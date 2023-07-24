@@ -4,12 +4,12 @@ import time
 import requests
 
 
-class ConnectionManager:
+class FinalesClient:
     """Class to manage the connection with the server."""
 
-    def __init__(self, username, password, ipurl, port):
+    def __init__(self, username, password, host, port):
         """Initialize internal variables."""
-        self._baseurl = f'http://{ipurl}:{port}'
+        self._baseurl = f'http://{host}:{port}'
         self._username = username
         self._password = password
         self._auth_header = None
