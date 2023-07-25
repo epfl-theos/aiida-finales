@@ -3,10 +3,9 @@
 import getpass
 
 import click
-import yaml  # consider strictyaml for automatic schema validation
 
-from aiida_finales.client import schemas
-from aiida_finales.client.connection_manager import FinalesClient
+from aiida_finales.engine.client import FinalesClientConfig, schemas
+from aiida_finales.utils.create_request import create_request
 
 from .root import cmd_root
 
@@ -16,33 +15,52 @@ def cmd_test():
     """Commands for testing purposes."""
 
 
-@cmd_test.command('populate')
+@cmd_test.command('connection')
 @click.option(
     '-c',
-    '--client-config-file',
+    '--config-file',
+    help='Path to the file with the configuration for the client.',
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-def cmd_test_populate(client_config_file):
+def cmd_test_connection(config_file):
     """Populate the server with test requests."""
-    with open(client_config_file) as fileobj:
-        try:
-            client_config = yaml.load(fileobj, Loader=yaml.FullLoader)
-        except yaml.YAMLError as exc:
-            raise yaml.YAMLError(
-                'Error while trying to read the yaml from client-config-file'
-            ) from exc
+    import requests
+    finales_client_config = FinalesClientConfig.load_from_yaml_file(
+        config_file)
+    host = finales_client_config.host
+    port = finales_client_config.port
+    connection_url = f'http://{host}:{port}/docs'
+    reply = requests.get(connection_url)
+    click.echo(f'Response should be 200. Response: `{reply.status_code}`')
 
-    settings = {
-        'username': client_config['username'],
-        'ipurl': client_config['ip_url'],
-        'port': client_config['port'],
-    }
-    username = settings['username']
 
-    settings['password'] = getpass.getpass(
+@cmd_test.command('populate')
+@click.option(
+    '-c',
+    '--config-file',
+    help='Path to the file with the configuration for the client.',
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+def cmd_test_populate(config_file):
+    """Populate the server with test requests."""
+    finales_client_config = FinalesClientConfig.load_from_yaml_file(
+        config_file)
+    connection_manager = finales_client_config.create_client()
+
+    username = finales_client_config.username
+    password = getpass.getpass(
         prompt=f'Password for username `{username}` (hidden): ')
-    connection_manager = FinalesClient(**settings)
+    connection_manager.authenticate(username, password)
+
+    request_data = create_request(temp=298,
+                                  conc_li=0.05,
+                                  conc_ec=0.45,
+                                  conc_pc=0.5)
+    server_reply = connection_manager.post_request(request_data)
+    print(server_reply)
+    return
 
     print(' > Logging in (takes 5 seconds) ...')
     connection_manager.authenticate()

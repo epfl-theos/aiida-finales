@@ -4,6 +4,19 @@ from scipy.interpolate import interp1d
 from aiida import orm
 from aiida.engine import calcfunction
 
+# LiPF6
+#   SMILES = "[Li+].F[P-](F)(F)(F)(F)F"
+#   INCHI = "AXPLOJNSKRXQPA-UHFFFAOYSA-N"
+#
+# EC (Ethylene carbonate)
+#   SMILES = "C1COC(=O)O1"
+#   INCHI = "KMTRUDSVKNLOMY-UHFFFAOYSA-N"
+#
+# PC (Propylene Carbonate)
+#   SMILES = "CC1COC(=O)O1"
+#   INCHI = "RUOJZAUFBMNUDX-UHFFFAOYSA-N"
+#
+
 
 @calcfunction
 def conductivity_estimation(input_node):

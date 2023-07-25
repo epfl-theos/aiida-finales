@@ -3,50 +3,46 @@
 import getpass
 
 import click
-import yaml  # consider strictyaml for automatic schema validation
 
 from aiida import load_profile
 
-from aiida_finales.engine.client import FinalesClient
+from aiida_finales.engine.client import FinalesClientConfig
 from aiida_finales.engine.tenant import AiidaTenant
 
 from .root import cmd_root
 
 
 @cmd_root.group('tenant')
-def cmd_client():
+def cmd_tenant():
     """Handle the tenant."""
 
 
-@cmd_client.command('start')
+@cmd_tenant.command('start')
+@click.option(
+    '-p',
+    '--profile',
+    help='Name of the AiiDA profile to use (current one by default).',
+    required=False,
+    type=str,
+)
 @click.option(
     '-c',
-    '--client-config-file',
+    '--config-file',
+    help='Path to the file with the configuration for the client.',
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-def cmd_tenant_start(client_config_file):
+def cmd_tenant_start(profile, config_file):
     """Start up the client (blocks the terminal)."""
-    with open(client_config_file) as fileobj:
-        try:
-            client_config = yaml.load(fileobj, Loader=yaml.FullLoader)
-        except yaml.YAMLError as exc:
-            raise yaml.YAMLError(
-                'Error while trying to read the yaml from client-config-file'
-            ) from exc
+    load_profile(profile)
 
-    client_profile = client_config.get('aiida_profile', None)
-    load_profile(client_profile)
+    finales_client_config = FinalesClientConfig.load_from_yaml_file(
+        config_file)
+    connection_manager = finales_client_config.create_client()
 
-    settings = {
-        'ipurl': client_config['ip_url'],
-        'port': client_config['port'],
-    }
-    connection_manager = FinalesClient(**settings)
-
-    username = client_config['username']
+    username = finales_client_config.username
     password = getpass.getpass(
-        prompt=f'Password for username `{username}` (hidden): ', )
+        prompt=f'Password for username `{username}` (hidden): ')
     connection_manager.authenticate(username, password)
 
     aiida_tenant = AiidaTenant(connection_manager)

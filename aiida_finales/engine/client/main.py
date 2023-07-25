@@ -1,7 +1,9 @@
 """Class to manage the connection with the server."""
 import time
 
+from pydantic import BaseModel
 import requests
+import yaml  # consider strictyaml for automatic schema validation
 
 
 class RestapiConnection:
@@ -29,6 +31,11 @@ class RestapiConnection:
             data=request_data,
             headers=request_headers,
         )
+        if token_response.status_code == 401:
+            raise ValueError('Wrong username / password.')
+        elif token_response.status_code != 200:
+            raise RuntimeError()('Problem with authentication.')
+
         token_response = token_response.json()
         token_object = token_response['access_token']
         token_type = token_response['token_type']
@@ -42,7 +49,7 @@ class RestapiConnection:
     def auth_get(self, endpoint, params=None):
         """GET with authorized credentials."""
         full_url = self._baseurl + endpoint
-        kwargs = {}
+        kwargs = {'headers': self._auth_header}
         if params is not None:
             kwargs['params'] = params
         return requests.get(full_url, **kwargs)
@@ -50,7 +57,7 @@ class RestapiConnection:
     def auth_post(self, endpoint, data_raw=None, data_json=None, params=None):
         """POST with authorized credentials."""
         full_url = self._baseurl + endpoint
-        kwargs = {}
+        kwargs = {'headers': self._auth_header}
         if data_raw is not None:
             kwargs['data'] = data_raw
         if data_json is not None:
@@ -70,12 +77,12 @@ class FinalesClient:
 
     def authenticate(self, username, password):
         """Authenticate the connection with the server."""
-        time.sleep(self.execution_delay)
+        time.sleep(self._execution_delay)
         return self._connection.authenticate(username, password)
 
     def get_pending_requests(self, quantity=None, method=None):
         """Return the pending requests."""
-        time.sleep(self.execution_delay)
+        time.sleep(self._execution_delay)
         endpoint = '/pending_requests/'
         params = {'quantity': quantity, 'method': method}
         response = self._connection.auth_get(endpoint, params=params)
@@ -83,17 +90,45 @@ class FinalesClient:
 
     def post_request(self, data):
         """Post a request to the server."""
-        time.sleep(self.execution_delay)
+        time.sleep(self._execution_delay)
         endpoint = '/requests/'
-        response = self._connection.auth_post(endpoint, data=data)
+        response = self._connection.auth_post(endpoint, data_json=data)
         return response.json()
 
     def post_result(self, data, request_id):
         """Post a result to the server."""
-        time.sleep(self.execution_delay)
+        time.sleep(self._execution_delay)
         endpoint = '/post_result/'
         params = {'request_id': request_id}
         response = self._connection.auth_post(endpoint,
                                               data=data,
                                               params=params)
         return response.json()
+
+
+class FinalesClientConfig(BaseModel):
+    """Configuration data for a FINALES client."""
+
+    username: str
+    host: str
+    port: int
+    execution_delay: float = 0.1
+
+    @classmethod
+    def load_from_yaml_file(cls, filepath):
+        """Load the configuration from a yaml file."""
+        with open(filepath) as fileobj:
+            try:
+                client_config = yaml.load(fileobj, Loader=yaml.FullLoader)
+            except yaml.YAMLError as exc:
+                raise yaml.YAMLError(
+                    'Error while trying to read the yaml from client-config-file'
+                ) from exc
+
+        return FinalesClientConfig(**client_config)
+
+    def create_client(self):
+        """Use the data to create a client."""
+        return FinalesClient(host=self.host,
+                             port=self.port,
+                             execution_delay=self.execution_delay)

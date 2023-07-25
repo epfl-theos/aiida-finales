@@ -5,7 +5,7 @@ from aiida import orm
 from aiida.engine import submit
 
 from aiida_finales.calculations import conductivity_estimation
-from aiida_finales.client import schemas
+from aiida_finales.engine.client import schemas
 from aiida_finales.workflows import ConductivityEstimationWorkchain
 
 TENANT_CAPABILITIES = {
