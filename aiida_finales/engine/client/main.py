@@ -107,7 +107,7 @@ class FinalesClient:
         time.sleep(self._execution_delay)
         endpoint = '/results/'
         response = self._connection.auth_post(endpoint, data_json=data)
-        return response
+        return response.json()
 
 
 class FinalesClientConfig(BaseModel):

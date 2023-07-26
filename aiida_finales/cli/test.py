@@ -60,8 +60,7 @@ def cmd_test_populate(config_file):
                                   conc_li=0.1,
                                   conc_ec=0.25,
                                   conc_pc=0.65)
-    import json
-    print(json.dumps(request_data, indent=2))
+
     server_reply = connection_manager.post_request(request_data)
     print(server_reply)
 
@@ -126,5 +125,3 @@ def cmd_test_postresult(request_uuid, config_file):
                                                   request_id=request_uuid)
     print(server_reply.json)
     return
-    import json
-    print(json.dumps(server_reply, indent=2))

@@ -9,7 +9,9 @@ from aiida_finales.engine.client import schemas
 from aiida_finales.workflows import ConductivityEstimationWorkchain
 
 TENANT_CAPABILITIES = {
-    'testum': ConductivityEstimationWorkchain,
+    'conductivity': {
+        'molecular_dynamics': ConductivityEstimationWorkchain
+    },
 }
 
 
@@ -20,7 +22,7 @@ class AiidaTenant:
         """Initialize the tenant."""
         self._client = finales_client
 
-    def start(self, finales_client):
+    def start(self):
         """Start up the client (blocks the terminal)."""
         while True:
 
@@ -32,20 +34,25 @@ class AiidaTenant:
             requests_finished = self.query_requests_finished()
 
             print(' > Looking for requests in the server...')
-            pending_requests = finales_client.get_pending_requests()
+            pending_requests = self._client.get_pending_requests()
 
             print(' > Updating finished requests...')
             outstanding_requests = {}
-            for request_id, request_data in pending_requests.items():
+            for request_data in pending_requests:
+
+                request_id = request_data['uuid']
+
+                if request_id in requests_ongoing:
+                    continue
 
                 if request_id in requests_finished:
                     self.submit_results(request_id,
                                         requests_finished[request_id])
                     continue
 
-                if request_id not in requests_ongoing:
-                    if self.request_is_valid(request_data):
-                        outstanding_requests[request_id] = request_data
+                prepared_submission = self.prepare_submission(request_data)
+                if prepared_submission is not None:
+                    outstanding_requests[request_id] = prepared_submission
 
             print(' > Launching new requests...')
             for request_id, request_data in outstanding_requests.items():
@@ -61,11 +68,29 @@ class AiidaTenant:
         time.sleep(1)
         return {}
 
-    def request_is_valid(self, request_data):
+    def prepare_submission(self, request_data):
         """Check if the tenant can deal with the request."""
         print(f'Received {request_data}')
-        time.sleep(1)
-        return True
+
+        request_quantity = request_data['request']['quantity']
+        if request_quantity not in TENANT_CAPABILITIES:
+            return None
+
+        request_methods = request_data['request']['methods']
+
+        for method_name in request_methods:
+
+            if method_name not in TENANT_CAPABILITIES[request_quantity]:
+                continue
+
+            MethodClass = TENANT_CAPABILITIES[request_quantity][method_name]
+            method_params = request_data['request']['parameters'][method_name]
+            builder = MethodClass.get_builder_from_inputs(method_params)
+
+            if builder is not None:
+                return builder
+
+        return None
 
     def submit_results(self, request_id, workflow):
         """Submit the results to the server."""
