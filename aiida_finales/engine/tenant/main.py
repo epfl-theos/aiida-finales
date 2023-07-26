@@ -55,8 +55,10 @@ class AiidaTenant:
                     outstanding_requests[request_id] = prepared_submission
 
             print(' > Launching new requests...')
-            for request_id, request_data in outstanding_requests.items():
-                self.launch_process(request_id, request_data)
+            for request_id, request_process in outstanding_requests.items():
+                print(f' >>> Launching processs for request {request_id}')
+                process_node = submit(request_process)
+                process_node.base.extras.set('request_uuid', request_id)
 
     def query_requests_ongoing(self):
         """Get all processes that are still ongoing."""
@@ -70,8 +72,6 @@ class AiidaTenant:
 
     def prepare_submission(self, request_data):
         """Check if the tenant can deal with the request."""
-        print(f'Received {request_data}')
-
         request_quantity = request_data['request']['quantity']
         if request_quantity not in TENANT_CAPABILITIES:
             return None
@@ -84,8 +84,7 @@ class AiidaTenant:
                 continue
 
             MethodClass = TENANT_CAPABILITIES[request_quantity][method_name]
-            method_params = request_data['request']['parameters'][method_name]
-            builder = MethodClass.get_builder_from_inputs(method_params)
+            builder = MethodClass.get_builder_from_inputs(request_data)
 
             if builder is not None:
                 return builder

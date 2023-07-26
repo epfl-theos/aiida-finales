@@ -19,7 +19,9 @@ def estimate_conductivity(value_lpf, value_ecs, value_pcs, temp):
              coefs[5] * lpf1 * lpf1 + coefs[6] * rpc1 * rpc1 * rpc1 +
              coefs[7] * rpc1 * rpc1 * lpf1 + coefs[8] * rpc1 * lpf1 * lpf1 +
              coefs[9] * lpf1 * lpf1 * lpf1)
-    return sigma * 1e-3
+
+    result = sigma * 1e-3
+    return result
 
 
 def calculate_coefs(temperature):

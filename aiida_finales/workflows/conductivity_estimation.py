@@ -1,10 +1,9 @@
 """Workflow for the estimation of conductivity."""
 from aiida import orm
-from aiida.engine import ToContext, WorkChain
-from aiida.plugins import CalculationFactory
+# from aiida.engine import ToContext
+from aiida.engine import WorkChain
 
-conductivity_calcfunc = CalculationFactory(
-    'aiida_finales.conductivity_estimation')
+from aiida_finales.calculations import conductivity_estimation
 
 
 class ConductivityEstimationWorkchain(WorkChain):
@@ -30,23 +29,33 @@ class ConductivityEstimationWorkchain(WorkChain):
 
         spec.outline(
             cls.execute_procedure,
-            cls.gather_results,
+            # cls.gather_results,
         )
 
     @classmethod
     def get_builder_from_inputs(cls, input_data):
         """Create the builder from the inputs."""
         builder = cls.get_builder()
+        parameters = input_data['request']['parameters']['molecular_dynamics']
+        if len(parameters['formulation']) == 0:
+            return None
         builder.input_data = orm.Dict(dict=input_data)
         return builder
 
     def execute_procedure(self):
         """Submit the calculation."""
-        inputs = {'input_node': self.inputs.input_data}
-        calculation_node = self.submit(conductivity_calcfunc, **inputs)
-        self.report(f'launching conductivity_calcfunc<{calculation_node.pk}>')
-        return ToContext(procedure=calculation_node)
-
-    def gather_results(self):
-        """Take the results and expose them."""
-        self.out('output_data', self.ctx.calculation_node.outputs.result)
+        output_node = conductivity_estimation(input_node=self.inputs.input_data)
+        self.out('output_data', output_node)
+#
+# I get a 'cannot submit a process function'. What is up with that???
+#
+#    def execute_procedure(self):
+#        """Submit the calculation."""
+#        inputs = {'input_node': self.inputs.input_data}
+#        calculation_node = self.submit(conductivity_estimation, **inputs)
+#        self.report(f'launching conductivity_estimation<{calculation_node.pk}>')
+#        return ToContext(procedure=calculation_node)
+#
+#    def gather_results(self):
+#        """Take the results and expose them."""
+#        self.out('output_data', self.ctx.calculation_node.outputs.result)
