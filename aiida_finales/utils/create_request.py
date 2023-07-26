@@ -24,15 +24,15 @@ def create_request(temp=None, conc_li=None, conc_ec=None, conc_pc=None):
     if temp is not None:
         method_params['temperature'] = temp
 
-    if conc_li is None:
+    if conc_li is not None:
         component = setup_component('LiPF6', conc_li)
         method_params['formulation'].append(component)
 
-    if conc_ec is None:
+    if conc_ec is not None:
         component = setup_component('EC', conc_ec)
         method_params['formulation'].append(component)
 
-    if conc_pc is None:
+    if conc_pc is not None:
         component = setup_component('PC', conc_pc)
         method_params['formulation'].append(component)
 

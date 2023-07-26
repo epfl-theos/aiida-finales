@@ -88,6 +88,13 @@ class FinalesClient:
         response = self._connection.auth_get(endpoint, params=params)
         return response.json()
 
+    def get_specific_request(self, request_uuid):
+        """Retrieve a specific request."""
+        time.sleep(self._execution_delay)
+        endpoint = f'/requests/{request_uuid}'
+        response = self._connection.auth_get(endpoint)
+        return response.json()
+
     def post_request(self, data):
         """Post a request to the server."""
         time.sleep(self._execution_delay)
@@ -98,12 +105,9 @@ class FinalesClient:
     def post_result(self, data, request_id):
         """Post a result to the server."""
         time.sleep(self._execution_delay)
-        endpoint = '/post_result/'
-        params = {'request_id': request_id}
-        response = self._connection.auth_post(endpoint,
-                                              data=data,
-                                              params=params)
-        return response.json()
+        endpoint = '/results/'
+        response = self._connection.auth_post(endpoint, data_json=data)
+        return response
 
 
 class FinalesClientConfig(BaseModel):

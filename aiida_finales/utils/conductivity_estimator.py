@@ -1,52 +1,25 @@
-"""Calculation for the estimation of conductivity."""
+"""CONDUCTIVITY ESTIMATOR."""
 from scipy.interpolate import interp1d
 
-from aiida import orm
-from aiida.engine import calcfunction
 
-
-@calcfunction
-def conductivity_estimation(input_node):
+def estimate_conductivity(value_lpf, value_ecs, value_pcs, temp):
     """Calculate the conductivity of LiPF6 in EC+PC mixtures."""
-    input_data = input_node.get_dict()
-    info = []
-
-    value_lpf = 0.0
-    value_ecs = 0.0
-    value_pcs = 0.0
-    for idx, chemical_data in enumerate(
-            input_data['formulation']['chemicals']):
-
-        if chemical_data['name'] == 'LiPF6':
-            info.append('found LiPF6')
-            value_lpf = input_data['formulation']['amounts'][idx]['value']
-
-        if chemical_data['name'] == 'EC':
-            info.append('found EC')
-            value_ecs = input_data['formulation']['amounts'][idx]['value']
-
-        if chemical_data['name'] == 'PC':
-            info.append('found PC')
-            value_pcs = input_data['formulation']['amounts'][idx]['value']
-
     if value_lpf <= 0.0 or value_pcs <= 0.0:
-        info.append('found problem =(')
-        return orm.Dict(dict={'values': None, 'info': info})
+        raise ValueError(
+            f'Cannot operate with concentrations of LPF={value_lpf} and PC={value_pcs}'
+        )
 
-    # Evaluate polynomial
     rpc1 = value_lpf / (value_ecs + value_pcs)
     lpf1 = value_pcs / (value_ecs + value_pcs)
-    temperature = input_data['temperature']['value']
-    coefs = calculate_coefs(temperature)
+
+    coefs = calculate_coefs(temp)
 
     sigma = (coefs[0] + coefs[1] * rpc1 + coefs[2] * lpf1 +
              coefs[3] * rpc1 * rpc1 + coefs[4] * rpc1 * lpf1 +
              coefs[5] * lpf1 * lpf1 + coefs[6] * rpc1 * rpc1 * rpc1 +
              coefs[7] * rpc1 * rpc1 * lpf1 + coefs[8] * rpc1 * lpf1 * lpf1 +
              coefs[9] * lpf1 * lpf1 * lpf1)
-    sigma = sigma * 1e-3
-
-    return orm.Dict(dict={'values': [sigma]})
+    return sigma * 1e-3
 
 
 def calculate_coefs(temperature):
