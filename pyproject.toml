@@ -49,7 +49,10 @@ docs = [
 ]
 
 [project.entry-points."aiida.calculations"]
-"finale.cf.conductivity" = "aiida_finales.calculations:conductivity_calcfunction"
+"aiida_finales.conductivity_estimation" = "aiida_finales.calculations:conductivity_estimation"
+
+[project.entry-points."aiida.workflows"]
+"aiida_finales.conductivity_estimation" = 'aiida_finales.workflows:ConductivityEstimationWorkchain'
 
 [project.scripts]
 aiida-finales = 'aiida_finales.cli:cmd_root'

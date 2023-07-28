@@ -3,10 +3,11 @@
 import getpass
 
 import click
-import yaml  # consider strictyaml for automatic schema validation
 
-from aiida_finales.client import schemas
-from aiida_finales.client.connection_manager import ConnectionManager
+from aiida_finales.engine.client import FinalesClientConfig
+from aiida_finales.utils.conductivity_estimator import estimate_conductivity
+from aiida_finales.utils.create_request import create_request
+from aiida_finales.utils.create_result import create_result, wrap_results
 
 from .root import cmd_root
 
@@ -16,95 +17,111 @@ def cmd_test():
     """Commands for testing purposes."""
 
 
-@cmd_test.command('populate')
+@cmd_test.command('connection')
 @click.option(
     '-c',
-    '--client-config-file',
+    '--config-file',
+    help='Path to the file with the configuration for the client.',
     required=True,
     type=click.Path(exists=True, dir_okay=False),
 )
-def cmd_test_populate(client_config_file):
+def cmd_test_connection(config_file):
     """Populate the server with test requests."""
-    with open(client_config_file) as fileobj:
-        try:
-            client_config = yaml.load(fileobj, Loader=yaml.FullLoader)
-        except yaml.YAMLError as exc:
-            raise yaml.YAMLError(
-                'Error while trying to read the yaml from client-config-file'
-            ) from exc
+    import requests
+    finales_client_config = FinalesClientConfig.load_from_yaml_file(
+        config_file)
+    host = finales_client_config.host
+    port = finales_client_config.port
+    connection_url = f'http://{host}:{port}/docs'
+    reply = requests.get(connection_url)
+    click.echo(f'Response should be 200. Response: `{reply.status_code}`')
 
-    settings = {
-        'username': client_config['username'],
-        'ipurl': client_config['ip_url'],
-        'port': client_config['port'],
-    }
-    username = settings['username']
 
-    settings['password'] = getpass.getpass(
+@cmd_test.command('populate')
+@click.option(
+    '-c',
+    '--config-file',
+    help='Path to the file with the configuration for the client.',
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+def cmd_test_populate(config_file):
+    """Populate the server with test requests."""
+    finales_client_config = FinalesClientConfig.load_from_yaml_file(
+        config_file)
+    connection_manager = finales_client_config.create_client()
+
+    username = finales_client_config.username
+    password = getpass.getpass(
         prompt=f'Password for username `{username}` (hidden): ')
-    connection_manager = ConnectionManager(**settings)
+    connection_manager.authenticate(username, password)
 
-    print(' > Logging in (takes 5 seconds) ...')
-    connection_manager.authenticate()
+    request_data = create_request(temp=250,
+                                  conc_li=0.1,
+                                  conc_ec=0.25,
+                                  conc_pc=0.65)
 
-    list_of_compositions = [
-        {
-            'lpf': 6.0,
-            'pcs': 6.0,
-            'ecs': 4.0
-        },
-        {
-            'lpf': 2.0,
-            'pcs': 3.3,
-            'ecs': 6.7
-        },
-    ]
+    server_reply = connection_manager.post_request(request_data)
+    print(server_reply)
 
-    ids = []
-    for composition in list_of_compositions:
 
-        chemicals = [
-            schemas.Chemical(smiles='[Li+].F[P-](F)(F)(F)(F)F',
-                             name='LiPF6',
-                             reference='LiPF6_ref'),
-            schemas.Chemical(smiles='CC1COC(=O)O1',
-                             name='PC',
-                             reference='PC_ref'),
-            schemas.Chemical(smiles='C1COC(=O)O1',
-                             name='EC',
-                             reference='EC_ref'),
-        ]
+@cmd_test.command('post-result')
+@click.option(
+    '-r',
+    '--request-uuid',
+    help='UUID of the request being addressed.',
+    required=True,
+    type=str,
+)
+@click.option(
+    '-c',
+    '--config-file',
+    help='Path to the file with the configuration for the client.',
+    required=True,
+    type=click.Path(exists=True, dir_okay=False),
+)
+def cmd_test_postresult(request_uuid, config_file):
+    """Post an example response."""
+    import uuid
 
-        amounts = [
-            {
-                'value': composition['lpf'],
-                'unit': 'mol'
-            },
-            {
-                'value': composition['pcs'],
-                'unit': 'mol'
-            },
-            {
-                'value': composition['ecs'],
-                'unit': 'mol'
-            },
-        ]
+    finales_client_config = FinalesClientConfig.load_from_yaml_file(
+        config_file)
+    connection_manager = finales_client_config.create_client()
 
-        form = schemas.Formulation(
-            chemicals=chemicals,
-            amounts=amounts,
-            ratio_method='molar',
-        )
+    username = finales_client_config.username
+    password = getpass.getpass(
+        prompt=f'Password for username `{username}` (hidden): ')
+    connection_manager.authenticate(username, password)
 
-        meas = schemas.Measurement(
-            formulation=form,
-            temperature=schemas.Temperature(value=303, unit='K'),
-            pending=True,
-            fom_data=[],
-            kind=schemas.Origin(origin='simulation', what='conductivity'),
-        )
+    server_reply = connection_manager.get_specific_request(request_uuid)
 
-        ans_ = connection_manager.post_request(json_data=meas.json())
-        ids.append(ans_)
+    request_params = server_reply['request']['parameters']
+    data = request_params['molecular_dynamics']
 
-    print(ids)
+    components = {}
+    for component in data['formulation']:
+        key = component['chemical']['InChIKey']
+        components[key] = component['fraction']
+
+    value_lpf = components.get('AXPLOJNSKRXQPA-UHFFFAOYSA-N', 0.0)
+    value_ecs = components.get('KMTRUDSVKNLOMY-UHFFFAOYSA-N', 0.0)
+    value_pcs = components.get('RUOJZAUFBMNUDX-UHFFFAOYSA-N', 0.0)
+    temp = data.get('temperature', 298)
+
+    result = estimate_conductivity(value_lpf, value_ecs, value_pcs, temp)
+
+    result_data = create_result(result, temp, data['formulation'],
+                                str(uuid.uuid4()))
+    result_object = wrap_results(
+        'conductivity',
+        'molecular_dynamics',
+        request_params,
+        result_data,
+        str(uuid.uuid4()),
+        request_uuid,
+    )
+
+    server_reply = connection_manager.post_result(data=result_object,
+                                                  request_id=request_uuid)
+    print(server_reply.json)
+    return
