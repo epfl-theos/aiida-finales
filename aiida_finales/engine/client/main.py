@@ -80,6 +80,14 @@ class FinalesClient:
         time.sleep(self._execution_delay)
         return self._connection.authenticate(username, password)
 
+    def get_capabilities(self, currently_available=False):
+        """Return the available capabilities."""
+        time.sleep(self._execution_delay)
+        endpoint = '/capabilities/'
+        params = {'currently_available': currently_available}
+        response = self._connection.auth_get(endpoint, params=params)
+        return response.json()
+
     def get_pending_requests(self, quantity=None, method=None):
         """Return the pending requests."""
         time.sleep(self._execution_delay)
