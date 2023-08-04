@@ -8,7 +8,6 @@ It has the following capabilities:
   provides an estimation for the conductivity in solutions of LiPF6 in EC+PC mixtures
   (based on the model of [DOI:10.1002/batt.202200228](https://doi.org/10.1002/batt.202200228))
 
-
 ## Installation
 
 The tenant must be installed in an environment that is already running AiiDA.
@@ -31,6 +30,7 @@ For this you can use the `cmdrun_build.sh` script or go to the root folder (wher
 ```console
 (env) user@box:aiida-finales$ docker build -t "aiida_finales_image"
 ```
+
 You can replace `aiida_finales_image` by the name you want to use for the image,
 but you will need to be consistent in the folowing commands.
 
