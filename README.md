@@ -4,9 +4,9 @@ This is the AiiDA tenant for the [FINALES server](https://github.com/BIG-MAP/FIN
 
 It has the following capabilities:
 
- - `conductivity` / `estimation` ([schema]()):
-   provides an estimation for the conductivity in solutions of LiPF6 in EC+PC mixtures
-   (based on the model of [DOI:10.1002/batt.202200228](https://doi.org/10.1002/batt.202200228))
+- `conductivity` / `estimation` ([schema](https://github.com/BIG-MAP/FINALES2_schemas/tree/schemas_update/src/FINALES2_schemas/classes_input)):
+  provides an estimation for the conductivity in solutions of LiPF6 in EC+PC mixtures
+  (based on the model of [DOI:10.1002/batt.202200228](https://doi.org/10.1002/batt.202200228))
 
 
 ## Installation
@@ -28,7 +28,7 @@ You can find them inside of the `.docker/control` folder.
 First you will need to create the docker image (the template used to launch the container from).
 For this you can use the `cmdrun_build.sh` script or go to the root folder (where the `Dockerfile` is) and run:
 
-``` console
+```console
 (env) user@box:aiida-finales$ docker build -t "aiida_finales_image"
 ```
 You can replace `aiida_finales_image` by the name you want to use for the image,
@@ -37,7 +37,7 @@ but you will need to be consistent in the folowing commands.
 Next you need to launch the container for the first time and set all connections using `cmdrun_init.sh`.
 Manually, this means running:
 
-``` console
+```console
 (env) user@box:aiida-finales$ docker run \
         --name finales_tenant \
         -p 8888:8888 \
